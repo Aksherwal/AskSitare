@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const reactionButtons = document.createElement('div');
             reactionButtons.classList.add('reaction-buttons');
             reactionButtons.innerHTML = `
-                    <button class="like-btn" title="Like">
+                <button class="like-btn" title="Like">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M2 20h2c.55 0 1-.45 1-1v-9c0-.55-.45-1-1-1H2v11zm19.83-7.12c.11-.25.17-.52.17-.8V11c0-1.1-.9-2-2-2h-5.5l.92-4.65c.05-.22.02-.46-.08-.66-.23-.45-.52-.86-.88-1.22L14 2 7.59 8.41C7.21 8.79 7 9.3 7 9.83v7.84C7 18.95 8.05 20 9.34 20h8.11c.7 0 1.36-.37 1.72-.97l2.66-6.15z"></path>
                     </svg>
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <rect x="8" y="8" width="8" height="8" rx="2"></rect>
                     </svg>
                 </button>
-
             `;
             messageDiv.appendChild(reactionButtons);
         }
@@ -42,31 +41,53 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function simulateTyping(message) {
-        return new Promise((resolve) => {
+    async function handleUserInput() {
+        const message = userInput.value.trim();
+        if (message) {
+            // Add the user's message to the chat
+            addMessage(message, true);
+            userInput.value = '';
+    
+            // Add and display the "Typing..." indicator
             const typingDiv = document.createElement('div');
             typingDiv.classList.add('message', 'assistant');
             typingDiv.innerHTML = '<div class="message-content"><p>Typing...</p></div>';
             chatMessages.appendChild(typingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            setTimeout(() => {
+    
+            try {
+                // Send the user's message to the server
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message }),
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Failed to fetch response from the server.');
+                }
+    
+                // Parse the response from the server
+                const data = await response.json();
+    
+                // Remove the "Typing..." indicator
                 chatMessages.removeChild(typingDiv);
-                addMessage(message);
-                resolve();
-            }, 1500 + Math.random() * 1500);
-        });
-    }
-
-    async function handleUserInput() {
-        const message = userInput.value.trim();
-        if (message) {
-            addMessage(message, true);
-            userInput.value = '';
-            await simulateTyping('Thank you for your message. How else can I assist you today?');
+    
+                // Add the server's response to the chat
+                addMessage(data.response, false);
+            } catch (error) {
+                // Remove the "Typing..." indicator if an error occurs
+                chatMessages.removeChild(typingDiv);
+    
+                // Display an error message in the chat
+                addMessage('Sorry, something went wrong. Please try again.', false);
+                console.error(error);
+            }
         }
     }
-
+    
     function handleReaction(event) {
         const button = event.target.closest('button');
         if (!button) return;
@@ -105,3 +126,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chatMessages.addEventListener('click', handleReaction);
 });
+
