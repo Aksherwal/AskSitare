@@ -27,6 +27,8 @@ body {
 }
 
 .chat-header {
+    display: flex;
+    justify-content: center;
     padding: 20px;
     border-bottom: 1px solid #e0e0e0;
 }
@@ -147,3 +149,40 @@ body {
     background: #555;
 }
 
+/* Reaction Buttons */
+.reaction-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.reaction-buttons button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.reaction-buttons button.liked svg {
+    stroke: #28a745; /* Green for Like */
+}
+
+.reaction-buttons button.disliked svg {
+    stroke: #dc3545; /* Red for Dislike */
+}
+
+.reaction-buttons button:hover svg {
+    stroke: #007aff; /* Blue on hover */
+}
+
+.reaction-buttons button.copy-btn svg {
+    stroke: #555; /* Default color for Copy */
+}
+
+.reaction-buttons svg {
+    width: 20px;
+    height: 20px;
+    transition: stroke 0.2s ease;
+}
