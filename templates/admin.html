@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-height: 400px;
+            overflow-y: auto;
+            display: block;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            overflow-y: auto;
+        }
+        .btn {
+            margin: 20px 0;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a style="text-decoration: none;" href="/"><b>⬅️</b></a>
+        <h1>User Feedback</h1>
+        <button class="btn" onclick="downloadCSV()">Download CSV</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Question Text</th>
+                    <th>Feedback</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row.id }}</td>
+                    <td>{{ row.question_text }}</td>
+                    <td>{{ row.feedback }}</td>
+                    <td>{{ row.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        function downloadCSV() {
+            let csv = 'ID,Question Text,Feedback,Timestamp\n';
+            let rows = document.querySelectorAll('table tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                let cells = rows[i].querySelectorAll('td');
+                let row = [];
+                cells.forEach(cell => row.push(cell.innerText));
+                csv += row.join(',') + '\n';
+            }
+
+            let hiddenElement = document.createElement('a');
+            hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+            hiddenElement.target = '_blank';
+            hiddenElement.download = 'feedback.csv';
+            hiddenElement.click();
+        }
+    </script>
+</body>
+</html>

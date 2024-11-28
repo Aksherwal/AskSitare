@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from groq import Groq
@@ -7,7 +7,7 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Initialize the Groq client with your API key
 client = Groq(api_key="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")
-queary=""" From the text given above, write a brief answer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text, if the question is irrelevent, show appropriate message, the question is: """
+queary=""" From the text given above, write a brief answer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text and also give the link if any in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 # Function to generate embedding for user question
 def generate_embedding(question):
     return model.encode(question).tolist()
@@ -24,7 +24,7 @@ DB_PARAMS = {
 conn = psycopg2.connect(**DB_PARAMS)
 cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-def get_top_similar_questions(user_question, top_n=2):
+def get_top_similar_questions(user_question, top_n=5):
     # Step 1: Generate embedding for the user question
     user_embedding = generate_embedding(user_question)
 
@@ -74,6 +74,8 @@ def get_top_similar_questions(user_question, top_n=2):
 
 app = Flask(__name__)
 
+app.secret_key = 'su-sitare-chatbot' 
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -83,11 +85,12 @@ def chat():
     user_message = request.json.get('message')
     # Process the message here and generate a response
     top_results=get_top_similar_questions(user_message)
-    if top_results[0]['paragraph']!= top_results[1]['paragraph']:
-        sourcetext=top_results[0]['paragraph']+top_results[1]['paragraph']
-    else:
-        sourcetext=top_results[0]['paragraph']
-    # Create a streaming completion request
+
+    sourcetext=""
+    for i in range(len(top_results)):
+        if top_results[i]['paragraph'] not in sourcetext:
+            sourcetext+=(" "+top_results[i]['paragraph'])
+
     completion = client.chat.completions.create(
         model="llama-3.1-70b-versatile",  # Specify the model
         messages=[
@@ -107,6 +110,57 @@ def chat():
     # response_message = f"You said: {user_message}"  # Replace with your processing logic
     
     return jsonify({'response': response_message})
+
+@app.route('/feedback', methods=['POST'])
+def record_feedback():
+    data = request.json
+    question_text = data.get('question_text')
+    feedback = data.get('feedback')  # 1 for like, 0 for dislike
+
+    if not question_text or feedback not in [0, 1]:
+        return jsonify({'error': 'Invalid data'}), 400
+
+    try:
+        # Insert feedback into the database
+        cursor.execute(
+            """
+            INSERT INTO feedback (question_text, feedback)
+            VALUES (%s, %s)
+            """,
+            (question_text, feedback)
+        )
+        conn.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if username == "admin" and password=="aks@sitare123":
+            session['username'] = username
+            return redirect(url_for('admin'))
+        else:
+            error = 'Invalid username or password'
+    
+    return render_template('login.html', error=error)
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+@app.route('/admin')
+def admin():
+    cursor.execute(" select * from feedback")
+    data=cursor.fetchall()
+    return render_template('admin.html', data=data)
 
 if __name__ == '__main__':
     app.run(debug=True)
