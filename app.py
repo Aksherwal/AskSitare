@@ -7,7 +7,7 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Initialize the Groq client with your API key
 client = Groq(api_key="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")
-# queary=""" From the text given above, write a brief answer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
+# queary=""" From the text given above, write a brief anaswer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 queary=""" From this text, answer briefly the question given next (if the text contains the answer) without mentioning the text,
 if text has link, give the link in the end of answer only in clickable format,
 if the question is irrelevant, show appropriate message,
