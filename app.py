@@ -99,22 +99,22 @@ def chat():
             sourcetext+=(" "+top_results[i]['paragraph'])
 
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",  # Specify the model
+        model="llama-3.1-70b-versatile",                          # Specify the model
         messages=[
             {"role": "system", "content": "You are a University chatbot assistent specialized in English language"},
             {"role": "user", "content": sourcetext+queary+user_message}
             ],
-            temperature=1,       # Controls creativity (higher = more creative)
-            max_tokens=1024,     # Limit on response length
-            top_p=1,             # Sampling parameter for diverse outputs
-            stream=True,         # Enables streaming
-            stop=None            # No stop sequence
+            temperature=1,                                       # Controls creativity (higher = more creative)
+            max_tokens=1024,                                     # Limit on response length
+            top_p=1,                                             # Sampling parameter for diverse outputs
+            stream=True,                                         # Enables streaming
+            stop=None                                            # No stop sequence
         )
     # Process and print the streamed response
     response_message=""
     for chunk in completion:
         response_message+=chunk.choices[0].delta.content or ""
-    # response_message = f"You said: {user_message}"  # Replace with your processing logic
+    # response_message = f"You said: {user_message}"             # Replace with your processing logic
     
     return jsonify({'response': response_message})
 
@@ -122,7 +122,7 @@ def chat():
 def record_feedback():
     data = request.json
     question_text = data.get('question_text')
-    feedback = data.get('feedback')  # 1 for like, 0 for dislike
+    feedback = data.get('feedback')                               # 1 for like, 0 for dislike
 
     if not question_text or feedback not in [0, 1]:
         return jsonify({'error': 'Invalid data'}), 400
