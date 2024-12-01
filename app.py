@@ -22,9 +22,9 @@ def generate_embedding(question):
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "suchatbot",
-    "user": "postgres",
-    "password": "aks@sitare",
-    "host": "localhost",
+    "user": "render",
+    "password": "NkOOU2A2S1fhRPy9yq7pSXgIvQN7twp1",
+    "host": "dpg-ct4mmp2j1k6c73ehcgig-a",
     "port": 5432
 }
 # Connect to the database
