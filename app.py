@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 import os
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-api=os.environ.get("api_key", "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")
+api="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"
 # Initialize the Groq client with your API key
 # client = Groq(api_key="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")
 client = Groq(api_key=api)
@@ -170,6 +170,6 @@ def admin():
     return render_template('admin.html', data=data)
 
 if __name__ == '__main__':
-    # app.run(debug=True)
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
+    # port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+    # app.run(host="0.0.0.0", port=port)
