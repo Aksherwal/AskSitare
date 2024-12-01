@@ -3,10 +3,13 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from groq import Groq
 from sentence_transformers import SentenceTransformer
+import os
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
+api=os.getenv("api_key")
 # Initialize the Groq client with your API key
-client = Groq(api_key="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")
+# client = Groq(api_key="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")
+client = Groq(api_key=api)
 # queary=""" From the text given above, write a brief anaswer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 queary=""" From this text, answer briefly the question given next (if the text contains the answer) without mentioning the text,
 if text has link, give the link in the end of answer only in clickable format,
