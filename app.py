@@ -10,9 +10,9 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 # Initialize the Groq client with your API key
 client = Groq(api_key="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")
 # client = Groq("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")
-# queary=""" From the text given above, write a brief anaswer of this question(if it can be answered) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
-queary=""" From this text, answer briefly the question given next (if the text contains the answer) without mentioning the text,
-if text has link, give the link in the end of answer only in clickable format,
+# queary=""" From the text given above, write a vey brief and precise anaswer of this question(if it can be answered from the text) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
+queary=""" From this text, answer very briefly the question given next (if the text contains the answer) without mentioning the text,
+if text has link, give the link in the end of answer only in clickable format otherwise don't mension about the link,
 if the question is irrelevant, show appropriate message,
 the question is: """
 # Function to generate embedding for user question
@@ -22,9 +22,9 @@ def generate_embedding(question):
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "suchatbot",
-    "user": "render",
-    "password": "NkOOU2A2S1fhRPy9yq7pSXgIvQN7twp1",
-    "host": "dpg-ct4mmp2j1k6c73ehcgig-a",
+    "user": "postgres",
+    "password": "aks@sitare",
+    "host": "localhost",
     "port": 5432
 }
 # Connect to the database
@@ -32,10 +32,10 @@ conn = psycopg2.connect(**DB_PARAMS)
 cursor = conn.cursor(cursor_factory=RealDictCursor)
 
 def get_top_similar_questions(user_question, top_n=5):
-    # Step 1: Generate embedding for the user question
+    # Generate embedding for the user question
     user_embedding = generate_embedding(user_question)
 
-    # Step 2: Query to calculate similarity and retrieve top N questions
+    # Query to calculate similarity and retrieve top N questions
     query = f"""
         SELECT
             sr_no,
@@ -52,7 +52,7 @@ def get_top_similar_questions(user_question, top_n=5):
     cursor.execute(query, (user_embedding, top_n))
     top_questions = cursor.fetchall()
 
-    # Step 3: Retrieve paragraphs for the corresponding topic_ids
+    # Retrieve paragraphs for the corresponding topic_ids
     topic_ids = tuple(q['topic_id'] for q in top_questions)
     paragraphs_query = """
     SELECT topic_id, paragraph
@@ -62,7 +62,7 @@ def get_top_similar_questions(user_question, top_n=5):
     cursor.execute(paragraphs_query, (topic_ids,))
     paragraphs = cursor.fetchall()
 
-    # Step 4: Map topic_id to paragraphs for display
+    # Map topic_id to paragraphs for display
     paragraphs_dict = {p['topic_id']: p['paragraph'] for p in paragraphs}
 
     # Combine the questions and paragraphs
@@ -99,7 +99,7 @@ def chat():
             sourcetext+=(" "+top_results[i]['paragraph'])
 
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",                          # Specify the model
+        model="llama-3.3-70b-versatile",                          # model
         messages=[
             {"role": "system", "content": "You are a University chatbot assistent specialized in English language"},
             {"role": "user", "content": sourcetext+queary+user_message}
@@ -114,7 +114,7 @@ def chat():
     response_message=""
     for chunk in completion:
         response_message+=chunk.choices[0].delta.content or ""
-    # response_message = f"You said: {user_message}"             # Replace with your processing logic
+  
     
     return jsonify({'response': response_message})
 
@@ -170,6 +170,6 @@ def admin():
     return render_template('admin.html', data=data)
 
 if __name__ == '__main__':
-    # app.run(debug=True)
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
+    # port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+    # app.run(host="0.0.0.0", port=port)
