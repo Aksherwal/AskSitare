@@ -1,24 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600&display=swap");
 
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-}
+} */
 
-body {
+.body-chat {
+    margin-top: 1%;
+    margin-bottom: 1%;
   font-family: "Inter", sans-serif;
-  background-color: #f0f0f0;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
 }
 
 .chat-container {
   width: 100%;
   max-width: 800px;
-  height: 90vh;
+  height: 75vh;
   background-color: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -74,7 +74,7 @@ body {
 }
 
 .user .message-content {
-  background-color: #007aff;
+  background-color: #308ff4;
   color: #ffffff;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
@@ -193,13 +193,13 @@ body {
 }
 
 .reaction-buttons button.copy-btn svg {
-  stroke: #555; /* Default color for Copy */
+  stroke: #2b2b2b; /* Default color for Copy */
 }
 
 .reaction-buttons svg {
   width: 20px;
   height: 20px;
-  transition: stroke 0.2s ease;
+  transition: stroke 0.1s ease;
 }
 
 /* Responsive Design */
