@@ -8,8 +8,9 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # api="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"
 # Initialize the Groq client with your API key
-client = Groq(api_key="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")
+# client = Groq(api_key="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")
 # client = Groq("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")
+client = Groq(os.getenv("GROQ_API_KEY"))
 # queary=""" From the text given above, write a vey brief and precise anaswer of this question(if it can be answered from the text) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 queary=""" From this text, answer shortly the question given next (if the text contains the answer) without mentioning the text,
 if text has link, give the link in the end of answer only in clickable format otherwise don't mension about the link that it is present or not,
@@ -23,8 +24,8 @@ def generate_embedding(question):
 DB_PARAMS = {
     "dbname": "suchatbot",
     "user": "avnadmin",
-    "password": "AVNS_0nJifC6QqBkzGmHnQPp",
-    "host": "suchatbot-suchatbot.g.aivencloud.com",
+    "password": os.getenv("password"),
+    "host": os.getenv("host"),
     "port": 13189
 }
 # Connect to the database
@@ -170,6 +171,6 @@ def admin():
     return render_template('admin.html', data=data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-    # port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
-    # app.run(host="0.0.0.0", port=port)
+    # app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if PORT is not set
+    app.run(host="0.0.0.0", port=port)
