@@ -22,10 +22,10 @@ def generate_embedding(question):
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "suchatbot",
-    "user": "postgres",
-    "password": "aks@sitare",
-    "host": "localhost",
-    "port": 5432
+    "user": "avnadmin",
+    "password": "AVNS_0nJifC6QqBkzGmHnQPp",
+    "host": "suchatbot-suchatbot.g.aivencloud.com",
+    "port": 13189
 }
 # Connect to the database
 conn = psycopg2.connect(**DB_PARAMS)
