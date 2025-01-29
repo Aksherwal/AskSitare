@@ -12,7 +12,7 @@ client = Groq(api_key="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"
 # client = Groq("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")
 # queary=""" From the text given above, write a vey brief and precise anaswer of this question(if it can be answered from the text) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 queary=""" From this text, answer very briefly the question given next (if the text contains the answer) without mentioning the text,
-if text has link, give the link in the end of answer only in clickable format otherwise don't mension about the link,
+if text has link, give the link in the end of answer only in clickable format otherwise don't mension about the link that it is present or not,
 if the question is irrelevant, show appropriate message,
 the question is: """
 # Function to generate embedding for user question
@@ -22,10 +22,10 @@ def generate_embedding(question):
 # Database connection parameters
 DB_PARAMS = {
     "dbname": "suchatbot",
-    "user": "postgres",
-    "password": "aks@sitare",
-    "host": "localhost",
-    "port": 5432
+    "user": "avnadmin",
+    "password": "AVNS_0nJifC6QqBkzGmHnQPp",
+    "host": "suchatbot-suchatbot.g.aivencloud.com",
+    "port": 13189
 }
 # Connect to the database
 conn = psycopg2.connect(**DB_PARAMS)
