@@ -6,7 +6,7 @@ AskSitare is an intelligent chatbot web application designed specifically for Si
 
 - Real-time chat interface for student queries
 - Semantic search using sentence transformers
-- Integration with Groq's LLaMA 3.1 70B model for generating responses
+- Integration with Groq's LLaMA 3.3 70B model for generating responses
 - Feedback system for response quality tracking
 - Admin dashboard for monitoring feedback
 - PostgreSQL database for storing questions and feedback
@@ -19,11 +19,11 @@ AskSitare is an intelligent chatbot web application designed specifically for Si
 - **AI/ML**:
   - Groq API for LLM integration
   - Sentence Transformers for text embeddings
-  - LLaMA 3.1 70B model for response generation
+  - LLaMA 3.3 70B model for response generation
 - **Frontend**: HTML/Templates
 
 ## Live Link:
-[👉click here ](https://asksitare.onrender.com/)
+👉[click here ](https://asksitare.onrender.com/)
 ## Installation
 
 1. Clone the repository
