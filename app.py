@@ -190,7 +190,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Initialize the Groq client with API key from environment variables
-client = Groq(os.getenv("GROQ_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # Prompt template
 QUERY_TEMPLATE = """
@@ -205,7 +205,7 @@ DB_PARAMS = {
     "user": "avnadmin",
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
-    "port": os.getenv("DB_PORT", 5432)
+    "port": 13189
 }
 
 # Flask app initialization
