@@ -178,7 +178,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from psycopg2.pool import SimpleConnectionPool
 from groq import Groq
 from sentence_transformers import SentenceTransformer
 import os
@@ -191,7 +190,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Initialize the Groq client with API key from environment variables
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = Groq(os.getenv("GROQ_API_KEY"))
 
 # Prompt template
 QUERY_TEMPLATE = """
@@ -206,11 +205,8 @@ DB_PARAMS = {
     "user": "avnadmin",
     "password": os.getenv("DB_PASSWORD"),
     "host": os.getenv("DB_HOST"),
-    "port": 13189
+    "port": os.getenv("DB_PORT", 5432)
 }
-
-# Initialize connection pool
-conn_pool = SimpleConnectionPool(1, 10, **DB_PARAMS)
 
 # Flask app initialization
 app = Flask(__name__)
@@ -224,7 +220,7 @@ def generate_embedding(question):
 def get_top_similar_questions(user_question, top_n=5):
     user_embedding = generate_embedding(user_question)
     try:
-        conn = conn_pool.getconn()
+        conn = psycopg2.connect(**DB_PARAMS)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         # Query for top similar questions
@@ -264,7 +260,7 @@ def get_top_similar_questions(user_question, top_n=5):
         logging.error(f"Error retrieving similar questions: {e}")
         return []
     finally:
-        conn_pool.putconn(conn)
+        conn.close()
 
 @app.route('/')
 def index():
@@ -313,7 +309,7 @@ def record_feedback():
         return jsonify({'error': 'Invalid data'}), 400
 
     try:
-        conn = conn_pool.getconn()
+        conn = psycopg2.connect(**DB_PARAMS)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -330,7 +326,7 @@ def record_feedback():
         logging.error(f"Error recording feedback: {e}")
         return jsonify({'error': 'Failed to record feedback'}), 500
     finally:
-        conn_pool.putconn(conn)
+        conn.close()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -353,7 +349,7 @@ def logout():
 @app.route('/admin')
 def admin():
     try:
-        conn = conn_pool.getconn()
+        conn = psycopg2.connect(**DB_PARAMS)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("SELECT * FROM feedback")
         data = cursor.fetchall()
@@ -362,7 +358,7 @@ def admin():
         logging.error(f"Error fetching feedback: {e}")
         return "Error fetching feedback", 500
     finally:
-        conn_pool.putconn(conn)
+        conn.close()
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
