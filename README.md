@@ -22,7 +22,7 @@ AskSitare is an intelligent chatbot web application designed specifically for Si
   - LLaMA 3.1 70B model for response generation
 - **Frontend**: HTML/Templates
 
-## Live Link: [Click Here]([url](https://asksitare.onrender.com/))
+## Live Link: [https://asksitare.onrender.com/](click here)
 ## Installation
 
 1. Clone the repository
