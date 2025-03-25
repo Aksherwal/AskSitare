@@ -1,0 +1,16 @@
+name: Keep Render Server Alive
+
+# Schedule the workflow to run every 5 minutes
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # CRON syntax for 5-minute intervals
+
+jobs:
+  keep_server_alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Use curl to send a request to your server
+      - name: Ping the Server
+        run: |
+          curl -X GET "https://asksitare.onrender.com/"
