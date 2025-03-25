@@ -87,8 +87,10 @@ The application uses the following main tables:
 - `topics`: Stores detailed answers/paragraphs
 - `feedback`: Stores user feedback on responses
 
-## Security
+## ML Analysis
+Click here to see the ML analysis of the datasets we have👉 @ [ML Analysis](https://github.com/deepalitomar021/ML_Analysis_SU_Chatbot)
 
+## Security
 - Secure admin login system
 - Environment variable based configuration
 - Database connection security
@@ -101,5 +103,3 @@ Please follow these steps to contribute:
 2. Create a new branch for your feature
 3. Submit a pull request with a clear description of your changes
 
-## ML Analysis
-ML Analysis repo👉 @ [ML Analysis](https://github.com/deepalitomar021/ML_Analysis_SU_Chatbot)
