@@ -20,7 +20,7 @@ AskSitare is an intelligent chatbot web application designed specifically for Si
   - Groq API for LLM integration
   - Sentence Transformers for text embeddings
   - LLaMA 3.3 70B model for response generation
-- **Frontend**: HTML/Templates
+- **Frontend**: HTML, CSS, Tailwind, JavaScript
 
 ## Live Link:
 👉[click here ](https://asksitare.onrender.com/)
