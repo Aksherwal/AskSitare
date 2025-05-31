@@ -1,7 +1,5 @@
-pip
 Flask
 psycopg2-binary
 sentence-transformers
 groq
 gunicorn
-huggingface_hub
