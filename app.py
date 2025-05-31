@@ -6,10 +6,6 @@ from sentence_transformers import SentenceTransformer
 import os
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# api="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"
-# Initialize the Groq client with your API key
-# client = Groq(api_key="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")
-# client = Groq("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")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # queary=""" From the text given above, write a vey brief and precise anaswer of this question(if it can be answered from the text) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
 queary=""" From this text, answer shortly the question given next (if the text contains the answer) without mentioning the text,
