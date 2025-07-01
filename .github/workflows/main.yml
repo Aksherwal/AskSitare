@@ -1,9 +1,9 @@
 name: Keep Render Server Alive
 
-# Schedule the workflow to run every 5 minutes
+# Schedule the workflow to run every 20 minutes
 on:
   schedule:
-    - cron: "*/20 * * * *"  # CRON syntax for 5-minute intervals
+    - cron: "*/20 * * * *"  # CRON syntax for 20-minute intervals
 
 jobs:
   keep_server_alive:
