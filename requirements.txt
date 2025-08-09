@@ -1,5 +1,9 @@
-Flask
-psycopg2-binary
-sentence-transformers
-groq
-gunicorn
+Flask==3.1.1
+gunicorn==23.0.0
+groq==0.31.0
+psycopg2-binary==2.9.10
+# Pin an older, lighter sentence-transformers; will pull transformers without GPU
+sentence-transformers==2.2.2
+# CPU-only torch to avoid installing CUDA runtime on Render free (512Mi limit)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.3.1+cpu ; sys_platform == 'linux'
