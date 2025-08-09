@@ -14,3 +14,12 @@ jobs:
       - name: Ping the Server
         run: |
           curl -X GET "https://asksitare.onrender.com/"
+      
+      # Send a POST to keep the Hugging Face Space warm
+      - name: Keep Hugging Face Space Awake
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"text":"keepalive"}' \
+            "https://aksherwal110-transformer.hf.space/embed"
+          

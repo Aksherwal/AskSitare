@@ -3,6 +3,47 @@ document.addEventListener("DOMContentLoaded", () => {
   const userInput = document.getElementById("userInput")
   const sendButton = document.getElementById("sendButton")
 
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#039;")
+  }
+
+  function extractLinkAndText(rawText) {
+    if (!rawText) return { cleanText: "", url: null }
+    // Strip any HTML tags the model may have produced
+    let text = String(rawText).replace(/<[^>]*>/g, "")
+
+    // Prefer first markdown link URL
+    let url = null
+    const mdMatch = text.match(/\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/)
+    if (mdMatch) url = mdMatch[1]
+
+    // If no markdown, find first bare URL
+    if (!url) {
+      const bareMatch = text.match(/(https?:\/\/[^\s<>'")]+)/)
+      if (bareMatch) url = bareMatch[1]
+    }
+
+    // Remove all markdown links but keep labels
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, label) => label)
+    // Remove all bare URLs
+    text = text.replace(/(https?:\/\/[^\s<>'")]+)/g, "")
+
+    // Clean up whitespace
+    text = text.replace(/\s{2,}/g, " ").trim()
+
+    // Trim trailing punctuation from captured URL
+    if (url) {
+      const m = url.match(/^(.*?)([\.,)\]]*)$/)
+      url = m ? m[1] : url
+    }
+    return { cleanText: text, url }
+  }
+
   function addMessage(content, isUser = false, questionText = null) {
     const messageDiv = document.createElement("div")
     messageDiv.classList.add("message", isUser ? "user" : "assistant")
@@ -13,7 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const messageContent = document.createElement("div")
     messageContent.classList.add("message-content")
-    messageContent.innerHTML = `<p>${content}</p>`
+    if (isUser) {
+      messageContent.innerHTML = `<p>${escapeHtml(content)}</p>`
+    } else {
+      const { cleanText, url } = extractLinkAndText(content)
+      const safe = escapeHtml(cleanText)
+      const link = url ? ` <a class="know-more-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">know more</a>` : ""
+      messageContent.innerHTML = `<p>${safe}${link}</p>`
+    }
     messageDiv.appendChild(messageContent)
 
     if (!isUser) {

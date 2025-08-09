@@ -87,6 +87,15 @@
   border-bottom-left-radius: 4px;
 }
 
+/* Style for "Know More" links */
+.assistant .message-content a.know-more-link {
+  color: #2563eb; /* blue-600 */
+  text-decoration: underline;
+}
+.assistant .message-content a.know-more-link:hover {
+  color: #1d4ed8; /* blue-700 */
+}
+
 .chat-input {
   display: flex;
   align-items: center;
