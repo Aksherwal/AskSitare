@@ -2,9 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from groq import Groq
-from sentence_transformers import SentenceTransformer
 import os
-model = SentenceTransformer('all-MiniLM-L6-v2')
+import requests
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # queary=""" From the text given above, write a vey brief and precise anaswer of this question(if it can be answered from the text) in a formal language but do not mension that you are giving the answer from any text and also give the link if any(otherwise dont mention about the link) in the text only in clickable fromat at the last of answer to know more, if the question is irrelevent, show appropriate message, the question is: """
@@ -12,9 +11,24 @@ queary=""" From this text, answer shortly the question given next (if the text c
 if text has link, give the link in the end of answer only in clickable format otherwise don't mension about the link that it is present or not,
 if the question is irrelevant, show appropriate message,
 the question is: """
+# Remote embeddings via your hf.space endpoint (keeps 384-dim vectors)
+EMBED_API_URL = os.getenv("EMBED_API_URL", "https://aksherwal110-transformer.hf.space/embed")
+_requests_session = requests.Session()
+
 # Function to generate embedding for user question
-def generate_embedding(question):
-    return model.encode(question).tolist()
+def generate_embedding(question: str):
+    response = _requests_session.post(
+        EMBED_API_URL,
+        json={"text": question},
+        headers={"Content-Type": "application/json"},
+        timeout=15,
+    )
+    response.raise_for_status()
+    data = response.json()
+    embedding = data.get("embedding")
+    if not isinstance(embedding, list):
+        raise ValueError("Invalid embedding response from embedding service")
+    return embedding
 
 # Database connection parameters
 DB_PARAMS = {
