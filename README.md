@@ -88,7 +88,7 @@ The application uses the following main tables:
 - `feedback`: Stores user feedback on responses
 
 ## ML Analysis
-Click here to see the ML analysis of the datasets we have👉 @ [ML Analysis]([https://github.com/deepalitomar021/ML_Analysis_SU_Chatbot](https://github.com/deepalitomar021/ML_Analysis_SU_Chatbot/blob/main/ML_analysis_suChatbot.ipynb))
+Click here to see the ML analysis of the datasets we have👉 @ [ML Analysis](https://github.com/deepalitomar021/ML_Analysis_SU_Chatbot/blob/main/ML_analysis_suChatbot.ipynb)
 
 ## Security
 - Secure admin login system
