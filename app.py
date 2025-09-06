@@ -5,6 +5,15 @@ from groq import Groq
 import os
 import requests
 from dotenv import load_dotenv
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+from sklearn.decomposition import LatentDirichletAllocation
+from collections import Counter
+import json
+from datetime import datetime, timedelta
+import re
 
 # Load environment variables from .env if present (local dev)
 load_dotenv()
@@ -183,6 +192,399 @@ def admin():
     cursor.execute(" select * from feedback")
     data=cursor.fetchall()
     return render_template('admin.html', data=data)
+
+
+@app.route('/feedback-analysis')
+def feedback_analysis():
+    """Route for the feedback analysis page"""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('feedback_analysis.html')
+
+@app.route('/api/feedback-analytics')
+def get_feedback_analytics():
+    """API endpoint to get all analytics data"""
+    try:
+        # Get all feedback data
+        cursor.execute("SELECT * FROM feedback ORDER BY timestamp DESC")
+        feedback_data = cursor.fetchall()
+        
+        if not feedback_data:
+            return jsonify({'error': 'No feedback data available'})
+        
+        # Convert to DataFrame for analysis
+        df = pd.DataFrame(feedback_data)
+        
+        # 1. Satisfaction Rate Analysis
+        satisfaction_stats = calculate_satisfaction_rate(df)
+        
+        # 2. Feedback Distribution
+        feedback_distribution = calculate_feedback_distribution(df)
+        
+        # 3. Topic Modeling
+        topic_analysis = perform_topic_modeling(df)
+        
+        # 4. Knowledge Gaps Analysis
+        knowledge_gaps = identify_knowledge_gaps(df)
+        
+        # 5. FAQ Generation
+        faq_suggestions = generate_faq_suggestions(df)
+        
+        # 6. Temporal Analysis
+        temporal_analysis = analyze_temporal_patterns(df)
+        
+        analytics_data = {
+            'satisfaction_rate': satisfaction_stats,
+            'feedback_distribution': feedback_distribution,
+            'topic_modeling': topic_analysis,
+            'knowledge_gaps': knowledge_gaps,
+            'faq_suggestions': faq_suggestions,
+            'temporal_analysis': temporal_analysis,
+            'total_responses': len(df)
+        }
+        
+        return jsonify(analytics_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def calculate_satisfaction_rate(df):
+    """Calculate satisfaction metrics - Fixed JSON serialization"""
+    total_feedback = len(df)
+    positive_feedback = len(df[df['feedback'] == 1])
+    negative_feedback = len(df[df['feedback'] == 0])
+    
+    satisfaction_rate = (positive_feedback / total_feedback * 100) if total_feedback > 0 else 0
+    
+    # Calculate trends over time
+    df['date'] = pd.to_datetime(df['timestamp']).dt.date
+    daily_satisfaction = df.groupby('date').agg({
+        'feedback': ['mean', 'count']
+    }).reset_index()
+    
+    # Flatten column names
+    daily_satisfaction.columns = ['date', 'mean_feedback', 'count_feedback']
+    daily_satisfaction['satisfaction_rate'] = daily_satisfaction['mean_feedback'] * 100
+    
+    # Convert to list for JSON serialization
+    trend_data = []
+    for _, row in daily_satisfaction.iterrows():
+        trend_data.append({
+            'date': row['date'].strftime('%Y-%m-%d'),
+            'satisfaction_rate': round(float(row['satisfaction_rate']), 2), 
+            'total_responses': int(row['count_feedback'])
+        })
+    
+    return {
+        'overall_satisfaction': round(float(satisfaction_rate), 2),
+        'positive_count': int(positive_feedback),
+        'negative_count': int(negative_feedback),
+        'total_count': int(total_feedback),
+        'trend_data': trend_data
+    }
+
+def calculate_feedback_distribution(df):
+    """Calculate feedback distribution metrics"""
+    feedback_counts = df['feedback'].value_counts().to_dict()
+    
+    # Hour-wise distribution
+    df['hour'] = pd.to_datetime(df['timestamp']).dt.hour
+    hourly_dist = df.groupby('hour').size().to_dict()
+    
+    # Day-wise distribution
+    df['day_of_week'] = pd.to_datetime(df['timestamp']).dt.day_name()
+    daily_dist = df.groupby('day_of_week').size().to_dict()
+    
+    return {
+        'feedback_counts': {str(k): int(v) for k, v in feedback_counts.items()},  # Add int() conversion
+        'hourly_distribution': {str(k): int(v) for k, v in hourly_dist.items()},  # Add int() conversion
+        'daily_distribution': {str(k): int(v) for k, v in daily_dist.items()}  # Add int() conversion
+    }
+
+def perform_topic_modeling(df):
+    """Perform topic modeling on questions"""
+    questions = df['question_text'].tolist()
+    
+    # Clean and preprocess text
+    cleaned_questions = [clean_text(q) for q in questions]
+    
+    # Remove empty questions
+    cleaned_questions = [q for q in cleaned_questions if q.strip()]
+    
+    if len(cleaned_questions) < 2:
+        return {'topics': [], 'question_topics': []}
+    
+    # TF-IDF Vectorization
+    vectorizer = TfidfVectorizer(
+        max_features=100,
+        stop_words='english',
+        ngram_range=(1, 2),
+        min_df=1
+    )
+    
+    try:
+        tfidf_matrix = vectorizer.fit_transform(cleaned_questions)
+        
+        # Determine optimal number of topics (max 5 for clarity)
+        n_topics = min(5, max(2, len(set(cleaned_questions)) // 3))
+        
+        # LDA Topic Modeling
+        lda = LatentDirichletAllocation(
+            n_components=n_topics,
+            random_state=42,
+            max_iter=100
+        )
+        lda.fit(tfidf_matrix)
+        
+        # Extract topics
+        feature_names = vectorizer.get_feature_names_out()
+        topics = []
+        
+        for topic_idx, topic in enumerate(lda.components_):
+            top_words_idx = topic.argsort()[-10:][::-1]
+            top_words = [feature_names[i] for i in top_words_idx]
+            topic_name = generate_topic_name(top_words)
+            
+            topics.append({
+            'id': int(topic_idx),  # Add int() conversion
+            'name': str(topic_name),  # Add str() conversion
+            'words': [str(word) for word in top_words[:5]],  # Add str() conversion
+            'weight': float(topic.sum())
+            })
+        
+        # Assign topics to questions
+        topic_assignments = lda.transform(tfidf_matrix)
+        question_topics = []
+        
+        for i, (question, topic_dist) in enumerate(zip(questions, topic_assignments)):
+            main_topic = topic_dist.argmax()
+            confidence = float(topic_dist[main_topic])
+            
+            question_topics.append({
+            'question': str(question),  # Add str() conversion
+            'topic_id': int(main_topic),
+            'topic_name': str(topics[main_topic]['name']),  # Add str() conversion
+            'confidence': float(confidence),
+            'feedback': int(df.iloc[i]['feedback'])
+        })
+        
+        return {
+            'topics': topics,
+            'question_topics': question_topics
+        }
+        
+    except Exception as e:
+        return {'topics': [], 'question_topics': [], 'error': str(e)}
+
+def identify_knowledge_gaps(df):
+    """Identify areas where the chatbot performs poorly"""
+    # Questions with negative feedback
+    negative_feedback = df[df['feedback'] == 0]
+    
+    if len(negative_feedback) == 0:
+        return {'poor_performance_areas': [], 'common_failure_patterns': []}
+    
+    # Analyze common patterns in failed questions
+    negative_questions = negative_feedback['question_text'].tolist()
+    
+    # Extract keywords from negative feedback
+    all_negative_text = ' '.join(negative_questions)
+    keywords = extract_keywords(all_negative_text)
+    
+    # Group similar failing questions
+    failure_patterns = []
+    
+    # Common question types that fail
+    question_types = categorize_questions(negative_questions)
+    
+    for q_type, questions in question_types.items():
+        if len(questions) > 1:  # Only include patterns with multiple instances
+            failure_patterns.append({
+                'pattern': q_type,
+                'count': len(questions),
+                'examples': questions[:3],  # Show first 3 examples
+                'percentage': round(len(questions) / len(negative_feedback) * 100, 2)
+            })
+    
+    return {
+        'poor_performance_areas': keywords[:10],
+        'common_failure_patterns': failure_patterns,
+        'total_negative_feedback': len(negative_feedback)
+    }
+
+def generate_faq_suggestions(df):
+    """Generate FAQ suggestions based on common questions"""
+    # Get most common questions
+    question_counts = df['question_text'].value_counts()
+    
+    # Get questions with high positive feedback
+    positive_questions = df[df['feedback'] == 1]['question_text'].value_counts()
+    
+    # Combine and analyze
+    faq_candidates = []
+    
+    # Most frequently asked questions
+    for question, count in question_counts.head(10).items():
+        feedback_for_question = df[df['question_text'] == question]['feedback']
+        avg_feedback = feedback_for_question.mean() if len(feedback_for_question) > 0 else 0
+        
+        faq_candidates.append({
+            'question': question,
+            'frequency': int(count),
+            'avg_feedback': round(avg_feedback, 2),
+            'category': categorize_single_question(question),
+            'priority': calculate_faq_priority(count, avg_feedback)
+        })
+    
+    # Sort by priority
+    faq_candidates.sort(key=lambda x: x['priority'], reverse=True)
+    
+    return {
+        'suggested_faqs': faq_candidates[:15],
+        'categories': get_question_categories(df)
+    }
+
+def analyze_temporal_patterns(df):
+    """Analyze temporal patterns in feedback - Fixed JSON serialization"""
+    df['datetime'] = pd.to_datetime(df['timestamp'])
+    df['date'] = df['datetime'].dt.date
+    df['hour'] = df['datetime'].dt.hour
+    df['day_of_week'] = df['datetime'].dt.day_name()
+    
+    # Weekly patterns - Fixed to return JSON-serializable dict
+    weekly_stats = {}
+    for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+        day_data = df[df['day_of_week'] == day]
+        if len(day_data) > 0:
+            weekly_stats[day] = {
+                'count': int(day_data['feedback'].count()),
+                'mean_satisfaction': float(day_data['feedback'].mean())
+            }
+        else:
+            weekly_stats[day] = {'count': 0, 'mean_satisfaction': 0.0}
+    
+    # Hourly patterns - Fixed to return JSON-serializable dict
+    hourly_stats = {}
+    for hour in range(24):
+        hour_data = df[df['hour'] == hour]
+        if len(hour_data) > 0:
+            hourly_stats[str(hour)] = {
+                'count': int(hour_data['feedback'].count()),
+                'mean_satisfaction': float(hour_data['feedback'].mean())
+            }
+        else:
+            hourly_stats[str(hour)] = {'count': 0, 'mean_satisfaction': 0.0}
+    
+    # Recent trends (last 7 days)
+    recent_date = df['datetime'].max() - timedelta(days=7)
+    recent_data = df[df['datetime'] >= recent_date]
+    
+    return {
+        'weekly_patterns': weekly_stats,
+        'hourly_patterns': hourly_stats,
+        'recent_trend': {
+            'total_questions': int(len(recent_data)),
+            'satisfaction_rate': float(recent_data['feedback'].mean() * 100) if len(recent_data) > 0 else 0.0
+        }
+    }
+
+# Helper functions
+def clean_text(text):
+    """Clean and preprocess text"""
+    if pd.isna(text):
+        return ""
+    text = str(text).lower()
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+
+def extract_keywords(text):
+    """Extract keywords using TF-IDF"""
+    try:
+        vectorizer = TfidfVectorizer(
+            max_features=20,
+            stop_words='english',
+            ngram_range=(1, 2)
+        )
+        tfidf_matrix = vectorizer.fit_transform([text])
+        feature_names = vectorizer.get_feature_names_out()
+        scores = tfidf_matrix.toarray()[0]
+        
+        keyword_scores = list(zip(feature_names, scores))
+        keyword_scores.sort(key=lambda x: x[1], reverse=True)
+        
+        return [kw[0] for kw in keyword_scores if kw[1] > 0]
+    except:
+        return []
+
+def categorize_questions(questions):
+    """Categorize questions into types"""
+    categories = {
+        'admission': [],
+        'fees': [],
+        'courses': [],
+        'facilities': [],
+        'contact': [],
+        'general': []
+    }
+    
+    keywords_map = {
+        'admission': ['admission', 'apply', 'eligibility', 'entrance', 'requirement'],
+        'fees': ['fee', 'cost', 'payment', 'scholarship', 'finance'],
+        'courses': ['course', 'program', 'curriculum', 'syllabus', 'subject'],
+        'facilities': ['facility', 'hostel', 'library', 'lab', 'infrastructure'],
+        'contact': ['contact', 'phone', 'email', 'address', 'location']
+    }
+    
+    for question in questions:
+        question_lower = question.lower()
+        categorized = False
+        
+        for category, keywords in keywords_map.items():
+            if any(keyword in question_lower for keyword in keywords):
+                categories[category].append(question)
+                categorized = True
+                break
+        
+        if not categorized:
+            categories['general'].append(question)
+    
+    return {k: v for k, v in categories.items() if v}
+
+def categorize_single_question(question):
+    """Categorize a single question"""
+    question_lower = question.lower()
+    
+    if any(word in question_lower for word in ['admission', 'apply', 'eligibility']):
+        return 'Admission'
+    elif any(word in question_lower for word in ['fee', 'cost', 'payment']):
+        return 'Fees'
+    elif any(word in question_lower for word in ['course', 'program', 'curriculum']):
+        return 'Courses'
+    elif any(word in question_lower for word in ['facility', 'hostel', 'library']):
+        return 'Facilities'
+    elif any(word in question_lower for word in ['contact', 'phone', 'email']):
+        return 'Contact'
+    else:
+        return 'General'
+
+def generate_topic_name(top_words):
+    """Generate a meaningful topic name from top words"""
+    # Simple heuristic to generate topic names
+    first_word = top_words[0] if top_words else "Topic"
+    return f"{first_word.title()} Related"
+
+def calculate_faq_priority(frequency, avg_feedback):
+    """Calculate priority score for FAQ suggestions"""
+    return frequency * (1 + avg_feedback)
+
+def get_question_categories(df):
+    """Get distribution of question categories"""
+    categories = {}
+    for question in df['question_text']:
+        category = categorize_single_question(question)
+        categories[category] = categories.get(category, 0) + 1
+    return categories
 
 if __name__ == '__main__':
     port = 4000

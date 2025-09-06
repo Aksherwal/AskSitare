@@ -6,7 +6,7 @@
     <title>Feedback - Sitare AI Assistant</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style2.css"> <!-- For custom styles -->
+    <link rel="stylesheet" href="/static/style2.css">
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col min-h-screen">
     <!-- Header -->
@@ -26,7 +26,17 @@
     <!-- Admin Container -->
     <div class="flex-grow container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">User Feedback</h1>
-        <button onclick="downloadCSV()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mb-6">Download CSV</button>
+        
+        <!-- Action Buttons -->
+        <div class="flex space-x-4 mb-6">
+            <button onclick="downloadCSV()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-download mr-2"></i>Download CSV
+            </button>
+            <a href="/feedback-analysis" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors inline-block">
+                <i class="fas fa-chart-line mr-2"></i>Feedback Analysis
+            </a>
+        </div>
+
         <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-100">
@@ -42,7 +52,17 @@
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 text-sm text-gray-700">{{ row.id }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ row.question_text }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ row.feedback }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            {% if row.feedback == 1 %}
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-thumbs-up"></i> Positive
+                                </span>
+                            {% else %}
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
+                                    <i class="fas fa-thumbs-down"></i> Negative
+                                </span>
+                            {% endif %}
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ row.timestamp }}</td>
                     </tr>
                     {% endfor %}

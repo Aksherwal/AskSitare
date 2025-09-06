@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Analysis - Sitare AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="stylesheet" href="/static/style2.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-robot text-2xl text-blue-600"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Sitare AI Assistant</h1>
+            </div>
+            <nav class="flex space-x-4">
+                <a href="/" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
+                <a href="/admin" class="text-gray-700 hover:text-blue-600 font-medium">Back to Admin</a>
+                <a href="/logout" class="text-gray-700 hover:text-blue-600 font-medium">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <div class="flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="text-lg font-medium">Analyzing feedback data...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-chart-line text-blue-600 mr-3"></i>
+                Advanced Feedback Analytics
+            </h1>
+            <p class="text-gray-600 text-lg">Comprehensive analysis of user feedback and chatbot performance</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Cards will be populated by JavaScript -->
+        </div>
+
+        <!-- Analytics Sections -->
+        <div class="space-y-8">
+            <!-- Satisfaction Rate -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-smile text-green-600 mr-2"></i>
+                        Satisfaction Rate Analysis
+                    </h2>
+                    <div class="bg-green-100 px-3 py-1 rounded-full">
+                        <span id="overall-satisfaction" class="font-bold text-green-800">--</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <canvas id="satisfactionPieChart"></canvas>
+                    </div>
+                    <div>
+                        <canvas id="satisfactionTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Distribution -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+                    Feedback Distribution
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Hourly Distribution</h3>
+                        <canvas id="hourlyDistChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Daily Distribution</h3>
+                        <canvas id="dailyDistChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Topic Modeling -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-tags text-purple-600 mr-2"></i>
+                    Topic Analysis
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Topic Distribution</h3>
+                        <canvas id="topicChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Topics by Performance</h3>
+                        <div id="topic-performance" class="space-y-3">
+                            <!-- Topic performance will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Knowledge Gaps -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                    Knowledge Gaps Analysis
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Poor Performance Areas</h3>
+                        <div id="knowledge-gaps-list" class="space-y-2">
+                            <!-- Knowledge gaps will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Common Failure Patterns</h3>
+                        <div id="failure-patterns" class="space-y-3">
+                            <!-- Failure patterns will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Suggestions -->
+            <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-question-circle text-indigo-600 mr-2"></i>
+                    FAQ Suggestions
+                </h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Question Categories</h3>
+                        <canvas id="faqCategoriesChart"></canvas>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">Top FAQ Candidates</h3>
+                        <div id="faq-suggestions" class="space-y-3 max-h-96 overflow-y-auto">
+                            <!-- FAQ suggestions will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white/90 backdrop-blur-md shadow-md mt-12">
+        <div class="container mx-auto px-4 py-6 text-center">
+            <p class="text-gray-600">&copy; 2023 Sitare University. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        let analyticsData = null;
+        let charts = {};
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalyticsData();
+        });
+
+        async function loadAnalyticsData() {
+            try {
+                const response = await fetch('/api/feedback-analytics');
+                analyticsData = await response.json();
+                
+                if (analyticsData.error) {
+                    throw new Error(analyticsData.error);
+                }
+                
+                hideLoading();
+                renderDashboard();
+            } catch (error) {
+                hideLoading();
+                showError('Failed to load analytics data: ' + error.message);
+            }
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Error Loading Analytics</h2>
+                    <p class="text-gray-600">${message}</p>
+                    <button onclick="location.reload()" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            renderSummaryCards();
+            renderSatisfactionAnalysis();
+            renderFeedbackDistribution();
+            renderTopicAnalysis();
+            renderKnowledgeGaps();
+            renderFAQSuggestions();
+        }
+
+        function renderSummaryCards() {
+            const container = document.getElementById('summary-cards');
+            const { satisfaction_rate, total_responses } = analyticsData;
+            
+            const cards = [
+                {
+                    title: 'Overall Satisfaction',
+                    value: `${parseFloat(satisfaction_rate.overall_satisfaction).toFixed(2)}%`,
+                    icon: 'fas fa-smile',
+                    color: 'green',
+                    trend: satisfaction_rate.positive_count > satisfaction_rate.negative_count ? 'up' : 'down'
+                },
+                {
+                    title: 'Total Responses',
+                    value: total_responses,
+                    icon: 'fas fa-comments',
+                    color: 'blue'
+                },
+                {
+                    title: 'Positive Feedback',
+                    value: satisfaction_rate.positive_count,
+                    icon: 'fas fa-thumbs-up',
+                    color: 'green'
+                },
+                {
+                    title: 'Negative Feedback',
+                    value: satisfaction_rate.negative_count,
+                    icon: 'fas fa-thumbs-down',
+                    color: 'red'
+                }
+            ];
+
+            container.innerHTML = cards.map(card => `
+                <div class="bg-white/90 backdrop-blur-md rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-${card.color}-600 text-sm font-medium">${card.title}</p>
+                            <p class="text-3xl font-bold text-gray-800">${card.value}</p>
+                        </div>
+                        <div class="text-${card.color}-600">
+                            <i class="${card.icon} text-3xl"></i>
+                        </div>
+                    </div>
+                    ${card.trend ? `
+                        <div class="mt-2">
+                            <span class="text-${card.trend === 'up' ? 'green' : 'red'}-600 text-sm">
+                                <i class="fas fa-arrow-${card.trend}"></i>
+                                ${card.trend === 'up' ? 'Positive trend' : 'Needs attention'}
+                            </span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            // Update overall satisfaction display
+            document.getElementById('overall-satisfaction').textContent = 
+                `${parseFloat(satisfaction_rate.overall_satisfaction).toFixed(2)}%`;
+        }
+
+        function renderSatisfactionAnalysis() {
+            const { satisfaction_rate } = analyticsData;
+            
+            // Pie chart for satisfaction distribution
+            const pieCtx = document.getElementById('satisfactionPieChart').getContext('2d');
+            charts.satisfactionPie = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positive', 'Negative'],
+                    datasets: [{
+                        data: [satisfaction_rate.positive_count, satisfaction_rate.negative_count],
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Feedback Distribution'
+                        }
+                    }
+                }
+            });
+
+            // Trend chart
+            if (satisfaction_rate.trend_data && satisfaction_rate.trend_data.length > 0) {
+                const trendCtx = document.getElementById('satisfactionTrendChart').getContext('2d');
+                charts.satisfactionTrend = new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: satisfaction_rate.trend_data.map(d => d.date),
+                        datasets: [{
+                            label: 'Satisfaction Rate (%)',
+                            data: satisfaction_rate.trend_data.map(d => d.satisfaction_rate),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Satisfaction Trend Over Time'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderFeedbackDistribution() {
+            const { feedback_distribution } = analyticsData;
+            
+            // Hourly distribution
+            const hourlyCtx = document.getElementById('hourlyDistChart').getContext('2d');
+            const hourlyData = Object.entries(feedback_distribution.hourly_distribution)
+                .sort(([a], [b]) => parseInt(a) - parseInt(b));
+            
+            charts.hourlyDist = new Chart(hourlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: hourlyData.map(([hour]) => `${hour}:00`),
+                    datasets: [{
+                        label: 'Questions Count',
+                        data: hourlyData.map(([, count]) => count),
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        borderColor: '#3B82F6',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Daily distribution
+            const dailyCtx = document.getElementById('dailyDistChart').getContext('2d');
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dailyData = dayOrder.map(day => [day, feedback_distribution.daily_distribution[day] || 0]);
+            
+            charts.dailyDist = new Chart(dailyCtx, {
+                type: 'bar',
+                data: {
+                    labels: dailyData.map(([day]) => day),
+                    datasets: [{
+                        label: 'Questions Count',
+                        data: dailyData.map(([, count]) => count),
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                        borderColor: '#10B981',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTopicAnalysis() {
+            const { topic_modeling } = analyticsData;
+            
+            if (topic_modeling.topics && topic_modeling.topics.length > 0) {
+                // Topic distribution chart
+                const topicCtx = document.getElementById('topicChart').getContext('2d');
+                charts.topics = new Chart(topicCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: topic_modeling.topics.map(t => t.name),
+                        datasets: [{
+                            data: topic_modeling.topics.map(t => t.weight),
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(255, 205, 86, 0.8)',
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(153, 102, 255, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // Topic performance
+                const performanceContainer = document.getElementById('topic-performance');
+                const topicPerformance = {};
+                
+                topic_modeling.question_topics.forEach(qt => {
+                    if (!topicPerformance[qt.topic_name]) {
+                        topicPerformance[qt.topic_name] = { positive: 0, total: 0 };
+                    }
+                    topicPerformance[qt.topic_name].total++;
+                    if (qt.feedback === 1) {
+                        topicPerformance[qt.topic_name].positive++;
+                    }
+                });
+
+                performanceContainer.innerHTML = Object.entries(topicPerformance)
+                    .map(([topic, data]) => {
+                        const percentage = ((data.positive / data.total) * 100).toFixed(1);
+                        const color = percentage >= 70 ? 'green' : percentage >= 50 ? 'yellow' : 'red';
+                        return `
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <span class="font-medium">${topic}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">${data.positive}/${data.total}</span>
+                                    <span class="bg-${color}-100 text-${color}-800 px-2 py-1 rounded-full text-xs font-bold">
+                                        ${percentage}%
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            } else {
+                document.getElementById('topic-performance').innerHTML = 
+                    '<p class="text-gray-500 text-center py-4">No topic data available</p>';
+            }
+        }
+
+        function renderKnowledgeGaps() {
+            const { knowledge_gaps } = analyticsData;
+            
+            // Poor performance areas
+            const gapsContainer = document.getElementById('knowledge-gaps-list');
+            if (knowledge_gaps.poor_performance_areas && knowledge_gaps.poor_performance_areas.length > 0) {
+                gapsContainer.innerHTML = knowledge_gaps.poor_performance_areas
+                    .map(area => `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <span class="text-red-800 font-medium">${area}</span>
+                        </div>
+                    `).join('');
+            } else {
+                gapsContainer.innerHTML = 
+                    '<p class="text-gray-500 text-center py-4">No knowledge gaps identified</p>';
+            }
+
+            // Failure patterns
+            const patternsContainer = document.getElementById('failure-patterns');
+            if (knowledge_gaps.common_failure_patterns && knowledge_gaps.common_failure_patterns.length > 0) {
+                patternsContainer.innerHTML = knowledge_gaps.common_failure_patterns
+                    .map(pattern => `
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-orange-800">${pattern.pattern}</h4>
+                                <span class="bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-xs">
+                                    ${pattern.count} occurrences
+                                </span>
+                            </div>
+                            <p class="text-sm text-orange-700 mb-2">${pattern.percentage}% of negative feedback</p>
+                            <div class="text-xs text-orange-600">
+                                <strong>Examples:</strong>
+                                <ul class="list-disc list-inside mt-1">
+                                    ${pattern.examples.map(ex => `<li>${ex}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `).join('');
+            } else {
+                patternsContainer.innerHTML = 
+                    '<p class="text-gray-500 text-center py-4">No failure patterns detected</p>';
+            }
+        }
+
+        function renderFAQSuggestions() {
+            const { faq_suggestions } = analyticsData;
+            
+            // Categories chart
+            if (faq_suggestions.categories) {
+                const categoriesCtx = document.getElementById('faqCategoriesChart').getContext('2d');
+                charts.faqCategories = new Chart(categoriesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(faq_suggestions.categories),
+                        datasets: [{
+                            data: Object.values(faq_suggestions.categories),
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // FAQ suggestions list
+            const suggestionsContainer = document.getElementById('faq-suggestions');
+            if (faq_suggestions.suggested_faqs && faq_suggestions.suggested_faqs.length > 0) {
+                suggestionsContainer.innerHTML = faq_suggestions.suggested_faqs
+                    .slice(0, 10) // Show top 10
+                    .map((faq, index) => {
+                        const priorityColor = faq.priority > 10 ? 'green' : faq.priority > 5 ? 'yellow' : 'red';
+                        return `
+                            <div class="bg-gray-50 border rounded-lg p-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h4 class="font-medium text-gray-800 flex-1">${faq.question}</h4>
+                                    <span class="bg-${priorityColor}-100 text-${priorityColor}-800 px-2 py-1 rounded-full text-xs font-bold ml-2">
+                                        Priority: ${faq.priority.toFixed(1)}
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                        ${faq.category}
+                                    </span>
+                                    <div class="flex space-x-4">
+                                        <span>Frequency: ${faq.frequency}</span>
+                                        <span>Avg Rating: ${(faq.avg_feedback * 100).toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            } else {
+                suggestionsContainer.innerHTML = 
+                    '<p class="text-gray-500 text-center py-4">No FAQ suggestions available</p>';
+            }
+        }
+
+        // Cleanup function for charts
+        window.addEventListener('beforeunload', function() {
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
